@@ -11,7 +11,6 @@ def main(page: ft.Page):
     page.title = "GPS Location Tracker"
     page.padding = 20
     page.bgcolor = "#F2F5F9"
-
     page.theme_mode = ft.ThemeMode.LIGHT
 
     # --------------------------------------------------
@@ -67,11 +66,13 @@ def main(page: ft.Page):
 
         try:
 
-            # Check permission
+            # Request GPS permission
             permission = await geolocator.request_permission()
 
-            if permission != ftg.GeolocatorPermissionStatus.ALWAYS and \
-               permission != ftg.GeolocatorPermissionStatus.WHILE_IN_USE:
+            if permission not in [
+                ftg.GeolocatorPermissionStatus.ALWAYS,
+                ftg.GeolocatorPermissionStatus.WHILE_IN_USE
+            ]:
 
                 status_text.value = "Location permission denied."
 
@@ -83,16 +84,16 @@ def main(page: ft.Page):
             status_text.value = "Getting live GPS location..."
             page.update()
 
+            # Get current GPS position
             position = await geolocator.get_current_position(
                 desired_accuracy=ftg.GeolocatorPositionAccuracy.HIGH
             )
 
             latitude = position.latitude
             longitude = position.longitude
-
             accuracy = position.accuracy
 
-            # Show GPS immediately
+            # Display GPS immediately
             latitude_text.value = f"{latitude:.8f}"
             longitude_text.value = f"{longitude:.8f}"
 
@@ -138,12 +139,24 @@ def main(page: ft.Page):
                     "Location request failed"
                 )
 
+        except requests.exceptions.ConnectionError:
+
+            status_text.value = (
+                "Cannot connect to Flask server."
+            )
+
+        except requests.exceptions.Timeout:
+
+            status_text.value = (
+                "Flask server request timed out."
+            )
+
         except Exception as error:
 
             print("GPS ERROR:", error)
 
             status_text.value = (
-                f"Unable to get location: {error}"
+                f"GPS error: {error}"
             )
 
         finally:
@@ -170,18 +183,44 @@ def main(page: ft.Page):
     result_box = ft.Container(
         content=ft.Column(
             [
-                info_row("Status:", status_text),
-                info_row("Latitude:", latitude_text),
-                info_row("Longitude:", longitude_text),
-                info_row("Location:", location_text),
-                info_row("Address:", address_text),
+                info_row(
+                    "Status:",
+                    status_text
+                ),
+
+                info_row(
+                    "Latitude:",
+                    latitude_text
+                ),
+
+                info_row(
+                    "Longitude:",
+                    longitude_text
+                ),
+
+                info_row(
+                    "Location:",
+                    location_text
+                ),
+
+                info_row(
+                    "Address:",
+                    address_text
+                )
             ],
             spacing=15
         ),
+
         padding=20,
         bgcolor="#F5F5F5",
         border_radius=12,
-        margin=ft.Margin(top=20, left=0, right=0, bottom=0)
+
+        margin=ft.Margin(
+            top=20,
+            left=0,
+            right=0,
+            bottom=0
+        )
     )
 
     # --------------------------------------------------
@@ -189,6 +228,7 @@ def main(page: ft.Page):
     # --------------------------------------------------
 
     container = ft.Container(
+
         content=ft.Column(
             [
                 ft.Text(
@@ -210,7 +250,11 @@ def main(page: ft.Page):
 
                 result_box
             ],
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+
+            horizontal_alignment=(
+                ft.CrossAxisAlignment.CENTER
+            ),
+
             spacing=10
         ),
 
@@ -218,12 +262,17 @@ def main(page: ft.Page):
         padding=25,
         bgcolor=ft.Colors.WHITE,
         border_radius=15,
+
         shadow=ft.BoxShadow(
             blur_radius=20,
             spread_radius=1,
             offset=ft.Offset(0, 5)
         )
     )
+
+    # --------------------------------------------------
+    # ADD TO PAGE
+    # --------------------------------------------------
 
     page.add(
         ft.Row(
@@ -232,5 +281,9 @@ def main(page: ft.Page):
         )
     )
 
+
+# --------------------------------------------------
+# START FLET
+# --------------------------------------------------
 
 ft.run(main)
