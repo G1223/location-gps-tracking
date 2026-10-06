@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>GPS Location Tracker</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f5f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #1976d2;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background: #999;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .item {
+            margin: 10px 0;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>📍 GPS Location</h1>
+
+    <button id="locationButton"
+            onclick="getLocation()">
+        Get My Location
+    </button>
+
+    <div class="result">
+
+        <div class="item">
+            <strong>Status:</strong>
+            <span id="status">Waiting...</span>
+        </div>
+
+        <div class="item">
+            <strong>Latitude:</strong>
+            <span id="latitude">-</span>
+        </div>
+
+        <div class="item">
+            <strong>Longitude:</strong>
+            <span id="longitude">-</span>
+        </div>
+
+        <div class="item">
+            <strong>Location:</strong>
+            <span id="location">-</span>
+        </div>
+
+        <div class="item">
+            <strong>Address:</strong>
+            <span id="address">-</span>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function getLocation() {
+
+    const status = document.getElementById("status");
+    const button = document.getElementById("locationButton");
+
+    if (!navigator.geolocation) {
+
+        status.textContent =
+            "GPS is not supported by this browser.";
+
+        return;
+    }
+
+    status.textContent =
+        "Requesting GPS location...";
+
+    button.disabled = true;
+
+    navigator.geolocation.getCurrentPosition(
+
+        async function(position) {
+
+            const latitude =
+                position.coords.latitude;
+
+            const longitude =
+                position.coords.longitude;
+
+            document.getElementById("latitude")
+                .textContent = latitude;
+
+            document.getElementById("longitude")
+                .textContent = longitude;
+
+            status.textContent =
+                "Sending location to server...";
+
+            try {
+
+                const response = await fetch(
+                    "/api/location",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            latitude: latitude,
+                            longitude: longitude
+                        })
+                    }
+                );
+
+                const data =
+                    await response.json();
+
+                if (data.success) {
+
+                    document.getElementById("location")
+                        .textContent =
+                        data.location_name;
+
+                    document.getElementById("address")
+                        .textContent =
+                        data.display_name;
+
+                    status.textContent =
+                        "Location found successfully";
+
+                } else {
+
+                    status.textContent =
+                        data.message;
+                }
+
+            } catch (error) {
+
+                status.textContent =
+                    "Server connection failed.";
+
+                console.error(error);
+
+            } finally {
+
+                button.disabled = false;
+            }
+
+        },
+
+        function(error) {
+
+            button.disabled = false;
+
+            switch (error.code) {
+
+                case error.PERMISSION_DENIED:
+                    status.textContent =
+                        "Location permission denied.";
+                    break;
+
+                case error.POSITION_UNAVAILABLE:
+                    status.textContent =
+                        "Location unavailable.";
+                    break;
+
+                case error.TIMEOUT:
+                    status.textContent =
+                        "GPS request timed out.";
+                    break;
+
+                default:
+                    status.textContent =
+                        "Unable to get location.";
+            }
+
+        },
+
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+        }
+    );
+}
+
+</script>
+
+</body>
+</html>
