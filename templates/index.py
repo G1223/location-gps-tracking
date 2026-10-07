@@ -1,4 +1,4 @@
-import flet as ft
+from flet import flet as ft
 import flet_geolocator as ftg
 import requests
 
@@ -12,10 +12,6 @@ def main(page: ft.Page):
     page.padding = 20
     page.bgcolor = "#F2F5F9"
     page.theme_mode = ft.ThemeMode.LIGHT
-
-    # --------------------------------------------------
-    # GPS
-    # --------------------------------------------------
 
     geolocator = ftg.Geolocator(
         location_settings=ftg.GeolocatorSettings(
@@ -52,10 +48,6 @@ def main(page: ft.Page):
             ],
             spacing=10
         )
-
-    # --------------------------------------------------
-    # GET LOCATION
-    # --------------------------------------------------
 
     async def get_location(e):
 
@@ -164,10 +156,6 @@ def main(page: ft.Page):
             get_button.disabled = False
             page.update()
 
-    # --------------------------------------------------
-    # BUTTON
-    # --------------------------------------------------
-
     get_button = ft.Button(
         "Get My Location",
         icon=ft.Icons.LOCATION_ON,
@@ -175,10 +163,6 @@ def main(page: ft.Page):
         width=450,
         height=55
     )
-
-    # --------------------------------------------------
-    # RESULT BOX
-    # --------------------------------------------------
 
     result_box = ft.Container(
         content=ft.Column(
@@ -223,10 +207,6 @@ def main(page: ft.Page):
         )
     )
 
-    # --------------------------------------------------
-    # MAIN CONTAINER
-    # --------------------------------------------------
-
     container = ft.Container(
 
         content=ft.Column(
@@ -270,20 +250,11 @@ def main(page: ft.Page):
         )
     )
 
-    # --------------------------------------------------
-    # ADD TO PAGE
-    # --------------------------------------------------
-
     page.add(
         ft.Row(
             [container],
             alignment=ft.MainAxisAlignment.CENTER
         )
     )
-
-
-# --------------------------------------------------
-# START FLET
-# --------------------------------------------------
 
 ft.run(main)
